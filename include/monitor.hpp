@@ -20,11 +20,6 @@ namespace monitorspace
 
       struct Metadata
       {
-         // map<string, name> names;
-         // map<string, string> strings;
-         // map<string, asset> assets;
-         // map<string, time_point> time_points;
-         // map<string, int64_t> ints;
          map<string, metadata_value> values;
       };
 
