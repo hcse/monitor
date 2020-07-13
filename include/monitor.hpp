@@ -26,7 +26,7 @@ namespace monitorspace
       struct [[eosio::table, eosio::contract("monitor")]] Config
       {
          set<name> authorized_owners;
-         Metadata metadata;
+         map<string, metadata_value> metadata;
       };
 
       typedef singleton<name("config"), Config> config_table;
@@ -48,7 +48,7 @@ namespace monitorspace
       struct [[eosio::table, eosio::contract("monitor")]] Metric
       {
          name metric_name;
-         Metadata metadata;
+         map<string, metadata_value> metadata;
          metric_value value;
 
          uint64_t primary_key() const { return metric_name.value; }
@@ -95,7 +95,7 @@ namespace monitorspace
       };
       typedef multi_index<name("metrics"), Metric> metric_table;
 
-      ACTION newmetric(const name &owner, const name &metric_name, const optional<Metadata> &meta);
+      ACTION newmetric ( const name& owner, const name &metric_name, const optional<map<string, metadata_value>> &meta  );
       ACTION setvalue(const name &metric_name, const metric_value &value);
       ACTION increment(const name &metric_name);
       ACTION add(const name &metric_name, const metric_value &operand);
