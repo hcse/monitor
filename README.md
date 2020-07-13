@@ -19,7 +19,7 @@ The events functionality is designed to create a 'feed' of relevant events for d
 
  - Additions to CMake should be done to the CMakeLists.txt in the './src' directory and not in the top level CMakeLists.txt
 
-
+```
 cleos create account eosio owner EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 
 cleos create account eosio monitor EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
@@ -35,7 +35,8 @@ cleos push action monitor newmetric '{
         "assets":[],
         "time_points":[],
         "ints":[],
-        "trxs":[]
+        "trxs":[],
+        "values":[]
     }
 }' -p owner
 
@@ -48,7 +49,8 @@ cleos push action monitor newmetric '{
         "assets":[],
         "time_points":[],
         "ints":[],
-        "trxs":[]
+        "trxs":[],
+        "values":[]
     }
 }' -p owner
 
@@ -60,5 +62,9 @@ cleos get table monitor monitor metrics
 cleos push action monitor increment '["intmetric"]' -p owner
 cleos push action monitor increment '["assetmetric"]' -p owner
 
+cleos push action monitor track '["assetmetric"]' -p owner
+
+
 cleos push action monitor add '["intmetric", ["int64", -2]]' -p owner
 cleos push action monitor add '["assetmetric", ["asset","3.33 HUSD"]]' -p owner
+```
