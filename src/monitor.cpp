@@ -6,15 +6,15 @@ monitor::monitor(name self, name code, datastream<const char*> ds) : contract(se
 
 monitor::~monitor() {}
 
-void monitor::newmetric ( const name& owner, const name &metric_name, const optional<map<string, metadata_value>> &meta  ) {
+void monitor::newmetric ( const name& owner, const name &metric_name, const optional<Metadata> &meta  ) {
     require_auth (owner);
     metric_table m_t (get_self(), get_self().value);
     m_t.emplace (owner, [&](auto &m) {
         m.metric_name = metric_name;
         m.metadata = meta.value();
-        m.metadata["owner"] = owner;
-        m.metadata["created_date"] = current_time_point();
-        m.metadata["updated_date"] = current_time_point();
+        m.metadata.values["owner"] = owner;
+        m.metadata.values["created_date"] = current_time_point();
+        m.metadata.values["updated_date"] = current_time_point();
     });
 }
 
@@ -23,7 +23,7 @@ void monitor::annotate (const name& metric_name, const time_point &timestamp, co
     auto m_itr  = m_t.find (metric_name.value);
     check (m_itr != m_t.end(), "Metric with name not found: " + metric_name.to_string());
 
-    require_auth (std::get<name>(m_itr->metadata.at("owner")));
+    require_auth (std::get<name>(m_itr->metadata.values.at("owner")));
 
     time_series_table ts_t (get_self(), metric_name.value);
     auto ts_itr = ts_t.find (timestamp.time_since_epoch().count());
@@ -40,7 +40,7 @@ void monitor::trackdelta ( const name& metric_name, const time_point &timestamp,
     auto m_itr  = m_t.find (metric_name.value);
     check (m_itr != m_t.end(), "Metric with name not found: " + metric_name.to_string());
 
-    require_auth (std::get<name>(m_itr->metadata.at("owner")));
+    require_auth (std::get<name>(m_itr->metadata.values.at("owner")));
 
     time_series_table ts_t (get_self(), metric_name.value);
     auto ts_itr = ts_t.find (timestamp.time_since_epoch().count());
@@ -58,8 +58,8 @@ bool monitor::is_tracked ( const name& metric_name ) {
     auto m_itr  = m_t.find (metric_name.value);
     check (m_itr != m_t.end(), "Metric with name not found: " + metric_name.to_string());
 
-    if (m_itr->metadata.find("track") != m_itr->metadata.end() && 
-        std::get<int64_t>(m_itr->metadata.at("track")) == 1) {
+    if (m_itr->metadata.values.find("track") != m_itr->metadata.values.end() && 
+        std::get<int64_t>(m_itr->metadata.values.at("track")) == 1) {
         return true;
     }
     return false;
@@ -70,13 +70,13 @@ void monitor::toggletrack ( const name& metric_name) {
     auto m_itr  = m_t.find (metric_name.value);
     check (m_itr != m_t.end(), "Metric with name not found: " + metric_name.to_string());
 
-    require_auth (std::get<name>(m_itr->metadata.at("owner")));
+    require_auth (std::get<name>(m_itr->metadata.values.at("owner")));
 
     m_t.modify (m_itr, get_self(), [&](auto &m) {
         if (is_tracked(metric_name)) {
-            m.metadata["track"] = 0;
+            m.metadata.values["track"] = 0;
         } else {
-            m.metadata["track"] = 1;
+            m.metadata.values["track"] = 1;
         }
     });
 }
@@ -87,13 +87,13 @@ void monitor::track ( const name& metric_name) {
     auto m_itr  = m_t.find (metric_name.value);
     check (m_itr != m_t.end(), "Metric with name not found: " + metric_name.to_string());
 
-    require_auth (std::get<name>(m_itr->metadata.at("owner")));
+    require_auth (std::get<name>(m_itr->metadata.values.at("owner")));
 
     m_t.modify (m_itr, get_self(), [&](auto &m) {
     //    m.metadata.ints["track"] = 1;
-       m.metadata["track"] = 1;
+       m.metadata.values["track"] = 1;
     //    m.metadata.time_points["updated_date"] = current_time_point();       
-       m.metadata["updated_date"] = current_time_point();
+       m.metadata.values["updated_date"] = current_time_point();
     });
 }
 
@@ -103,11 +103,11 @@ void monitor::untrack ( const name& metric_name) {
     auto m_itr  = m_t.find (metric_name.value);
     check (m_itr != m_t.end(), "Metric with name not found: " + metric_name.to_string());
 
-    require_auth (std::get<name>(m_itr->metadata.at("owner")));
+    require_auth (std::get<name>(m_itr->metadata.values.at("owner")));
 
     m_t.modify (m_itr, get_self(), [&](auto &m) {
-       m.metadata["track"] = 0;
-       m.metadata["updated_date"] = current_time_point();
+       m.metadata.values["track"] = 0;
+       m.metadata.values["updated_date"] = current_time_point();
     });
 }
 
@@ -116,10 +116,10 @@ void monitor::setmetadata (const name& metric_name, const string& key, const met
     auto m_itr  = m_t.find (metric_name.value);
     check (m_itr != m_t.end(), "Metric with name not found: " + metric_name.to_string());
 
-    require_auth (std::get<name>(m_itr->metadata.at("owner")));
+    require_auth (std::get<name>(m_itr->metadata.values.at("owner")));
 
     m_t.modify (m_itr, get_self(), [&](auto &m) {
-       m.metadata[key] = value;
+       m.metadata.values[key] = value;
     });
 }
 
@@ -128,11 +128,11 @@ void monitor::setvalue ( const name& metric_name, const metric_value &value ) {
     auto m_itr  = m_t.find (metric_name.value);
     check (m_itr != m_t.end(), "Metric with name not found: " + metric_name.to_string());
 
-    require_auth (std::get<name>(m_itr->metadata.at("owner")));
+    require_auth (std::get<name>(m_itr->metadata.values.at("owner")));
 
     m_t.modify (m_itr, get_self(), [&](auto &m) {
         m.value = value;
-        m.metadata["updated_date"] = current_time_point();
+        m.metadata.values["updated_date"] = current_time_point();
     });
 }
 
@@ -141,12 +141,12 @@ void monitor::increment ( const name& metric_name ) {
     auto m_itr  = m_t.find (metric_name.value);
     check (m_itr != m_t.end(), "Metric with name not found: " + metric_name.to_string());
 
-    require_auth (std::get<name>(m_itr->metadata.at("owner")));
+    require_auth (std::get<name>(m_itr->metadata.values.at("owner")));
 
     time_point timestamp = current_time_point();
     m_t.modify (m_itr, get_self(), [&](auto &m) {
         m.value = m_itr->increment();
-        m.metadata["updated_date"] = timestamp;
+        m.metadata.values["updated_date"] = timestamp;
     });
 
     if (is_tracked(metric_name)) {
@@ -159,11 +159,11 @@ void monitor::add (const name& metric_name, const metric_value &operand) {
     auto m_itr  = m_t.find (metric_name.value);
     check (m_itr != m_t.end(), "Metric with name not found: " + metric_name.to_string());
 
-    require_auth (std::get<name>(m_itr->metadata.at("owner")));
+    require_auth (std::get<name>(m_itr->metadata.values.at("owner")));
     time_point timestamp = current_time_point();
     m_t.modify (m_itr, get_self(), [&](auto &m) {
         m.value = m_itr->add(operand);
-        m.metadata["updated_date"] = timestamp;
+        m.metadata.values["updated_date"] = timestamp;
     });
 
     if (is_tracked(metric_name)) {
