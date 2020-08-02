@@ -170,3 +170,9 @@ void monitor::add (const name& metric_name, const metric_value &operand) {
         trackdelta (metric_name, timestamp, operand);
     }
 }
+
+void monitor::event (const name &broadcaster,
+                    const name &level,
+                    const map<string, metadata_value> &values) {
+    require_auth (broadcaster);
+}

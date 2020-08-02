@@ -111,6 +111,10 @@ namespace monitorspace
       ACTION addowner(const name &authorized_owner);
       ACTION remowner(const name &authorized_owner);
 
+      ACTION event (const name &broadcaster,
+                    const name &level,
+                    const map<string, metadata_value> &values);
+
    private:
       bool is_tracked(const name &metric_name);
       void trackdelta(const name &metric_name, const time_point &timestamp, const metric_value &delta);
